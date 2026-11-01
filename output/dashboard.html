@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oppday Check</title>
+<style>
+:root {
+  --surface-0: #f4f3ef;
+  --surface-1: #fcfcfb;
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted: #77766f;
+  --hairline: #e1e0d9;
+  --border: rgba(11,11,11,0.10);
+  --link: #1f5fbf;
+  --good: #0ca30c;
+  --good-text: #006300;
+  --warning: #fab219;
+  --critical: #d03b3b;
+  --unknown: #a3a29b;
+  --pending: #3e7bd6;
+  --chip-bg: #efeee9;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --surface-0: #121211;
+    --surface-1: #1a1a19;
+    --text-primary: #f0efec;
+    --text-secondary: #c3c2b7;
+    --text-muted: #9a998f;
+    --hairline: #2c2c2a;
+    --border: rgba(255,255,255,0.10);
+    --link: #7fb0ff;
+    --good-text: #0ca30c;
+    --unknown: #6f6e68;
+    --pending: #5a93ec;
+    --chip-bg: #252523;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--surface-0);
+  color: var(--text-primary);
+  font: 15px/1.55 system-ui, -apple-system, "Segoe UI", "Noto Sans Thai", sans-serif;
+}
+a { color: var(--link); }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 24px 16px 48px; }
+header h1 { margin: 0; font-size: 26px; }
+header p { margin: 4px 0 0; color: var(--text-secondary); }
+h2 { font-size: 18px; margin: 32px 0 12px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+.card {
+  background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 20px;
+}
+.card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.ticker { font-size: 22px; font-weight: 700; margin: 0; }
+.sub { color: var(--text-secondary); font-size: 13px; }
+.verdict {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px;
+  font-weight: 600; font-size: 14px; white-space: nowrap; border: 1px solid var(--border);
+}
+.verdict .dot { width: 10px; height: 10px; border-radius: 50%; }
+.hero { margin: 16px 0 4px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.hero .num { font-size: 40px; font-weight: 700; line-height: 1; }
+.hero .cap { color: var(--text-secondary); font-size: 14px; }
+.bar { display: flex; gap: 2px; height: 14px; margin: 14px 0 8px; }
+.bar span { display: block; height: 100%; min-width: 4px; cursor: default; }
+.bar span:first-child { border-radius: 4px 0 0 4px; }
+.bar span:last-child { border-radius: 0 4px 4px 0; }
+.bar span:only-child { border-radius: 4px; }
+.counts { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--text-secondary); }
+.counts b { color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.note { margin: 14px 0 6px; }
+.card h3 { font-size: 14px; margin: 14px 0 6px; color: var(--text-secondary); font-weight: 600; }
+.card ul { margin: 0; padding-left: 20px; }
+.card li { margin: 3px 0; }
+.links { margin-top: 14px; display: flex; gap: 16px; flex-wrap: wrap; font-size: 14px; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; color: var(--text-secondary); margin-top: 10px; }
+.sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.explain { font-size: 13px; color: var(--text-muted); margin: 8px 0 0; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.filters select, .filters input {
+  font: inherit; font-size: 14px; padding: 7px 10px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--surface-1); color: var(--text-primary);
+}
+.filters input { flex: 1 1 200px; min-width: 0; }
+.table-box { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 900px; font-size: 14px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--hairline); vertical-align: top; }
+th { font-size: 13px; color: var(--text-secondary); font-weight: 600; position: sticky; top: 0; background: var(--surface-1); }
+tr:last-child td { border-bottom: 0; }
+td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.chip {
+  display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+  padding: 2px 8px; border-radius: 999px; background: var(--chip-bg); font-size: 13px; font-weight: 600;
+}
+.src { color: var(--text-muted); font-size: 12px; margin-top: 4px; }
+.rowcount { font-size: 13px; color: var(--text-muted); margin: 8px 2px 0; }
+#tip {
+  position: fixed; pointer-events: none; background: var(--text-primary); color: var(--surface-1);
+  padding: 6px 10px; border-radius: 6px; font-size: 13px; opacity: 0; transition: opacity .1s; z-index: 10;
+}
+footer { margin-top: 32px; font-size: 13px; color: var(--text-muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Oppday Check</h1>
+    <p>ผู้บริหารพูดใน Opportunity Day ตรงกับงบการเงินจริงไหม · อัปเดต <span id="built"></span></p>
+  </header>
+
+  <h2>ภาพรวมรายบริษัท</h2>
+  <div class="legend" id="legend"></div>
+  <p class="explain">"ตรงกับงบ" นับจากข้อที่ตรวจได้ (ตรง + ตรงบางส่วน + ไม่ตรง) โดยตรงบางส่วนนับครึ่งข้อ วัดแค่ความถูกต้องของตัวเลข ส่วนเรื่องที่ไม่ได้พูดดูในหัวข้อ "อยู่ในงบแต่ไม่ได้พูด"</p>
+  <div class="cards" id="cards" style="margin-top:14px"></div>
+
+  <h2>ตารางตรวจทุกข้อ</h2>
+  <div class="filters">
+    <select id="f-ticker" aria-label="บริษัท"></select>
+    <select id="f-result" aria-label="ผลตรวจ"></select>
+    <input id="f-q" type="search" placeholder="ค้นหาเรื่อง ตัวเลข หรือหมายเหตุ" aria-label="ค้นหา">
+  </div>
+  <div class="table-box">
+    <table>
+      <thead><tr>
+        <th>บริษัท</th><th>นาที</th><th>เรื่อง</th><th>ผู้บริหารพูด</th><th>ตัวเลขจริง</th><th>ผล</th><th>หมายเหตุ</th>
+      </tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+  <p class="rowcount" id="rowcount"></p>
+
+  <footer>
+    ตัวเลขจริงมาจากงบการเงินและ MD&A ที่บริษัทยื่นต่อตลาดหลักทรัพย์ฯ · คำพูดผู้บริหารมาจากคำบรรยายอัตโนมัติของ YouTube ช่อง SET Thailand ซึ่งอาจถอดตัวเลขเพี้ยน จึงยึดตัวเลขจากงบเสมอ · ตรวจด้วยมือ ไม่ใช่คำแนะนำการลงทุน
+  </footer>
+</div>
+<div id="tip" role="tooltip"></div>
+
+<script>
+const DATA = {"claims": [{"id": "1", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "2:39", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=159s", "เรื่อง": "รายได้รวม งบเฉพาะกิจการ (7-Eleven) Q2", "ผู้บริหารพูด": "~137,000 ลบ. +5.3% YoY", "ตัวเลขจริง": "137,035 ลบ. +5.3% (130,089 → 137,035)", "ที่มา": "งบการเงิน CPALL Q2/2569 (30 มิ.ย. 2569) งบกำไรขาดทุน 3 เดือน: Total revenues", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "2", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "3:05", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=185s", "เรื่อง": "อัตรากำไรขั้นต้น งบเฉพาะกิจการ ทรงตัว YoY", "ผู้บริหารพูด": "ทรงตัว", "ตัวเลขจริง": "29.3% เท่ากับ Q2/2568", "ที่มา": "MD&A CPALL Q2/2569 (IDR 19/2026, 13 ส.ค. 2569) หน้า 4", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "3", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "3:05", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=185s", "เรื่อง": "EBIT margin งบเฉพาะกิจการ", "ผู้บริหารพูด": "~10% เพิ่ม ~60 bps", "ตัวเลขจริง": "9.95% (+50 bps) ถ้าหารรายได้รวม · 11.02% (+58 bps) ถ้าหารรายได้จากการขาย", "ที่มา": "งบการเงิน CPALL Q2/2569 (30 มิ.ย. 2569) Profit before finance costs 13,639 / 12,290 ลบ.", "ผล": "ตรงบางส่วน", "หมายเหตุ": "ระดับ ~10% ตรงกับฐานรายได้รวม แต่ +60 bps ตรงกับฐานรายได้จากการขาย ใช้คนละฐาน", "วันที่ตรวจ": "2026-11-01"}, {"id": "4", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "3:28", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=208s", "เรื่อง": "กำไรสุทธิ งบเฉพาะกิจการ Q2", "ผู้บริหารพูด": "~10,400 ลบ. +13.5%", "ตัวเลขจริง": "10,392 ลบ. +13.5%", "ที่มา": "งบการเงิน CPALL Q2/2569 (30 มิ.ย. 2569) Profit for the period", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "5", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "3:50", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=230s", "เรื่อง": "รายได้รวม งบรวม Q2", "ผู้บริหารพูด": "~265,700 ลบ. +3.6%", "ตัวเลขจริง": "265,760 ลบ. +3.6%", "ที่มา": "MD&A CPALL Q2/2569 (IDR 19/2026, 13 ส.ค. 2569) หน้า 2", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "6", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "3:50", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=230s", "เรื่อง": "อัตรากำไรขั้นต้น งบรวม ทรงตัว", "ผู้บริหารพูด": "ทรงตัว", "ตัวเลขจริง": "22.8% เท่ากับ Q2/2568", "ที่มา": "MD&A CPALL Q2/2569 (IDR 19/2026, 13 ส.ค. 2569) หน้า 2", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "7", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "3:50", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=230s", "เรื่อง": "กำไรสุทธิ งบรวม Q2", "ผู้บริหารพูด": "7,512 ลบ. +11%", "ตัวเลขจริง": "7,512 ลบ. +11.0%", "ที่มา": "MD&A CPALL Q2/2569 (IDR 19/2026, 13 ส.ค. 2569) หน้า 3", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "8", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "4:21", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=261s", "เรื่อง": "กำไรสุทธิ งบเฉพาะกิจการ 6 เดือน", "ผู้บริหารพูด": "เกือบ 18,000 ลบ. +15.7%", "ตัวเลขจริง": "17,962 ลบ. +15.7%", "ที่มา": "งบการเงิน CPALL Q2/2569 (30 มิ.ย. 2569) งบ 6 เดือน Profit for the period", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "9", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "4:21", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=261s", "เรื่อง": "กำไรสุทธิ งบรวม 6 เดือน", "ผู้บริหารพูด": "16,630 ลบ. +15.9%", "ตัวเลขจริง": "16,630 ลบ. +15.9%", "ที่มา": "งบการเงิน CPALL Q2/2569 (30 มิ.ย. 2569) งบ 6 เดือน Equity holders of the Company", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "10", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "5:10", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=310s", "เรื่อง": "สัดส่วนรายได้ ร้านสะดวกซื้อ+อื่น ๆ : ค้าส่งค้าปลีก+ศูนย์การค้า", "ผู้บริหารพูด": "53% : 47%", "ตัวเลขจริง": "53% : 47% (6 เดือนแรก)", "ที่มา": "MD&A CPALL Q2/2569 (IDR 19/2026, 13 ส.ค. 2569) หน้า 3", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "11", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "5:36", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=336s", "เรื่อง": "สัดส่วน EBIT ร้านสะดวกซื้อ+อื่น ๆ", "ผู้บริหารพูด": "เกือบ 77%", "ตัวเลขจริง": "77% (6 เดือนแรก)", "ที่มา": "MD&A CPALL Q2/2569 (IDR 19/2026, 13 ส.ค. 2569) หน้า 3", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "12", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "6:09", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=369s", "เรื่อง": "สาขาเปิดใหม่ Q2 และสาขารวม", "ผู้บริหารพูด": "200 สาขา · รวม 16,284", "ตัวเลขจริง": "200 สาขา · รวม 16,284", "ที่มา": "MD&A CPALL Q2/2569 (IDR 19/2026, 13 ส.ค. 2569) หน้า 3", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "13", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "6:31", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=391s", "เรื่อง": "สาขาต่างจังหวัด : กรุงเทพฯ และปริมณฑล", "ผู้บริหารพูด": "59% : 41%", "ตัวเลขจริง": "ไม่มีในงบหรือ MD&A", "ที่มา": "-", "ผล": "ตรวจไม่ได้", "หมายเหตุ": "อาจอยู่ในสไลด์ Oppday ยังไม่ได้เก็บ", "วันที่ตรวจ": "2026-11-01"}, {"id": "14", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "6:31", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=391s", "เรื่อง": "ร้านบริษัท : ร้าน SBP และ sub-area", "ผู้บริหารพูด": "52% : 48%", "ตัวเลขจริง": "52% : 48%", "ที่มา": "MD&A CPALL Q2/2569 (IDR 19/2026, 13 ส.ค. 2569) หน้า 3–4", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "15", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "6:52", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=412s", "เรื่อง": "ร้านใน ปตท.", "ผู้บริหารพูด": "14%", "ตัวเลขจริง": "14% (ร้าน stand-alone 86%)", "ที่มา": "MD&A CPALL Q2/2569 (IDR 19/2026, 13 ส.ค. 2569) หน้า 4", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "16", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "6:52", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=412s", "เรื่อง": "เป้าเปิดสาขาไทยปีนี้", "ผู้บริหารพูด": "700 สาขา", "ตัวเลขจริง": "ประมาณ 700 สาขา", "ที่มา": "MD&A CPALL Q2/2569 (IDR 19/2026, 13 ส.ค. 2569) หน้า 8 (Outlook)", "ผล": "ตรง", "หมายเหตุ": "เป็นเป้า ต้องตามดูผลสิ้นปี", "วันที่ตรวจ": "2026-11-01"}, {"id": "17", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "7:17", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=437s", "เรื่อง": "ลาว: เปิดเพิ่มใน Q2 และสาขารวม", "ผู้บริหารพูด": "+2 · รวม 32", "ตัวเลขจริง": "30 → 32 (+2)", "ที่มา": "MD&A CPALL Q1/2569 และ MD&A CPALL Q2/2569 (IDR 19/2026, 13 ส.ค. 2569) หน้า 5", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "18", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "7:17", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=437s", "เรื่อง": "กัมพูชา: ปิดใน Q2 และสาขารวม", "ผู้บริหารพูด": "ปิด 24 · เหลือ 39", "ตัวเลขจริง": "63 → 39 (-24)", "ที่มา": "MD&A CPALL Q1/2569 และ MD&A CPALL Q2/2569 (IDR 19/2026, 13 ส.ค. 2569) หน้า 5", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "19", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "11:20", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=680s", "เรื่อง": "SSSG 7-Eleven Q2", "ผู้บริหารพูด": "+0.8%", "ตัวเลขจริง": "+0.8%", "ที่มา": "MD&A CPALL Q2/2569 (IDR 19/2026, 13 ส.ค. 2569) หน้า 4", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "20", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "12:14", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=734s", "เรื่อง": "ยอดซื้อต่อบิล", "ผู้บริหารพูด": "~90 บาท", "ตัวเลขจริง": "~90 บาท", "ที่มา": "MD&A CPALL Q2/2569 (IDR 19/2026, 13 ส.ค. 2569) หน้า 4", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "21", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "12:14", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=734s", "เรื่อง": "ลูกค้าต่อร้านต่อวัน", "ผู้บริหารพูด": "~959 คน", "ตัวเลขจริง": "959 คน", "ที่มา": "MD&A CPALL Q2/2569 (IDR 19/2026, 13 ส.ค. 2569) หน้า 4", "ผล": "ตรง", "หมายเหตุ": "MD&A ระบุว่าจำนวนลูกค้าลดลงเล็กน้อย YoY แต่ในคลิปไม่ได้พูดถึง", "วันที่ตรวจ": "2026-11-01"}, {"id": "22", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "12:47", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=767s", "เรื่อง": "ยอดขายเฉลี่ยต่อร้านต่อวัน", "ผู้บริหารพูด": "~85,843 บาท", "ตัวเลขจริง": "85,843 บาท", "ที่มา": "MD&A CPALL Q2/2569 (IDR 19/2026, 13 ส.ค. 2569) หน้า 4", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "23", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "12:47", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=767s", "เรื่อง": "สัดส่วนยอดขาย O2O", "ผู้บริหารพูด": "11%", "ตัวเลขจริง": "~11%", "ที่มา": "MD&A CPALL Q2/2569 (IDR 19/2026, 13 ส.ค. 2569) หน้า 4", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "24", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "13:33", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=813s", "เรื่อง": "สัดส่วนอาหาร : ไม่ใช่อาหาร", "ผู้บริหารพูด": "77.5% : 22.5%", "ตัวเลขจริง": "77.5% : 22.5%", "ที่มา": "MD&A CPALL Q2/2569 (IDR 19/2026, 13 ส.ค. 2569) หน้า 4", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "25", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "13:58", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=838s", "เรื่อง": "margin สินค้า (product margin) เพิ่ม", "ผู้บริหารพูด": "+20 bps YoY", "ตัวเลขจริง": "ไม่มีในงบหรือ MD&A", "ที่มา": "-", "ผล": "ตรวจไม่ได้", "หมายเหตุ": "งบรายงานแค่ gross margin รวม 29.3% ทรงตัว", "วันที่ตรวจ": "2026-11-01"}, {"id": "26", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "15:41", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=941s", "เรื่อง": "ค่าใช้จ่ายขายและบริหาร / รายได้รวม งบเฉพาะกิจการ ลดลงเล็กน้อย", "ผู้บริหารพูด": "ลดลงเล็กน้อย", "ตัวเลขจริง": "26.48% → 26.26%", "ที่มา": "งบการเงิน CPALL Q2/2569 (30 มิ.ย. 2569) Distribution + Administrative / Total revenues", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "27", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "15:41", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=941s", "เรื่อง": "ค่าใช้จ่ายขายและบริหาร / รายได้รวม งบรวม", "ผู้บริหารพูด": "~20.2%", "ตัวเลขจริง": "20.25% (53,803 / 265,760)", "ที่มา": "งบการเงิน CPALL Q2/2569 (30 มิ.ย. 2569) งบกำไรขาดทุน 3 เดือน", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "28", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "16:00", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=960s", "เรื่อง": "หนี้สินที่มีภาระดอกเบี้ย งบรวม", "ผู้บริหารพูด": "319,574 ลบ.", "ตัวเลขจริง": "319,574 ลบ. (ไม่รวมหนี้สินตามสัญญาเช่า)", "ที่มา": "MD&A CPALL Q2/2569 (IDR 19/2026, 13 ส.ค. 2569) หน้า 6", "ผล": "ตรง", "หมายเหตุ": "คำบรรยายถอดเป็น \"319,5 574\"", "วันที่ตรวจ": "2026-11-01"}, {"id": "29", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "16:00", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=960s", "เรื่อง": "สัดส่วนหุ้นกู้ : เงินกู้", "ผู้บริหารพูด": "83% : 17%", "ตัวเลขจริง": "82.8% : 17.2%", "ที่มา": "งบการเงิน CPALL Q2/2569 (30 มิ.ย. 2569) งบแสดงฐานะการเงิน (หุ้นกู้ 24,844 + 239,821 ลบ.)", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "30", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "16:30", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=990s", "เรื่อง": "หนี้สินที่มีภาระดอกเบี้ย งบเฉพาะกิจการ", "ผู้บริหารพูด": "~200,000 กว่า ลบ.", "ตัวเลขจริง": "202,500 ลบ.", "ที่มา": "งบการเงิน CPALL Q2/2569 (30 มิ.ย. 2569) งบแสดงฐานะการเงิน งบเฉพาะกิจการ", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "31", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "16:49", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=1009s", "เรื่อง": "หนี้สินสุทธิต่อทุนปรับปรุง", "ผู้บริหารพูด": "0.82 เท่า (covenant ไม่เกิน 2 เท่า)", "ตัวเลขจริง": "0.82 เท่า", "ที่มา": "MD&A CPALL Q2/2569 (IDR 19/2026, 13 ส.ค. 2569) หน้า 6", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "32", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "16:49", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=1009s", "เรื่อง": "ต้นทุนทางการเงิน", "ผู้บริหารพูด": "ต่ำกว่า 4%", "ตัวเลขจริง": "ไม่มีในงบหรือ MD&A", "ที่มา": "-", "ผล": "ตรวจไม่ได้", "หมายเหตุ": "ต้องดูหมายเหตุประกอบงบเรื่องอัตราดอกเบี้ยหุ้นกู้", "วันที่ตรวจ": "2026-11-01"}, {"id": "33", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "16:49", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=1009s", "เรื่อง": "ดอกเบี้ยจ่ายไตรมาสนี้ลดลง", "ผู้บริหารพูด": "ลดลง", "ตัวเลขจริง": "งบรวม 3,803 → 3,605 ลบ. YoY (-5.2%) แต่เทียบ Q1 (3,594) เพิ่มเล็กน้อย", "ที่มา": "งบการเงิน CPALL Q2/2569 (30 มิ.ย. 2569) Finance costs 3 และ 6 เดือน", "ผล": "ตรง", "หมายเหตุ": "ลดลงเมื่อเทียบ YoY ไม่ใช่เทียบไตรมาสก่อน", "วันที่ตรวจ": "2026-11-01"}, {"id": "34", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "22:14", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=1334s", "เรื่อง": "gross margin 7-Eleven", "ผู้บริหารพูด": "29.3% ทรงตัว", "ตัวเลขจริง": "29.3% ทรงตัว", "ที่มา": "MD&A CPALL Q2/2569 (IDR 19/2026, 13 ส.ค. 2569) หน้า 4", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "35", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "28:23", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=1703s", "เรื่อง": "ค่าใช้จ่ายขายและบริหาร 7-Eleven โตช้ากว่ายอดขาย", "ผู้บริหารพูด": "~4% กว่า", "ตัวเลขจริง": "+4.5% เทียบรายได้ขาย +5.1%", "ที่มา": "MD&A CPALL Q2/2569 (IDR 19/2026, 13 ส.ค. 2569) หน้า 4–5", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "36", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "21:17", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=1277s", "เรื่อง": "เป้า gross margin ทั้งปี (guidance)", "ผู้บริหารพูด": "ขยาย 10–20 bps", "ตัวเลขจริง": "Q1 +20 bps (29.4 → 29.6) · Q2 ทรงตัว", "ที่มา": "MD&A CPALL Q1/2569 และ MD&A CPALL Q2/2569 (IDR 19/2026, 13 ส.ค. 2569)", "ผล": "ตามดูต่อ", "หมายเหตุ": "ครึ่งปีแรกอยู่ช่วงล่างของเป้า", "วันที่ตรวจ": "2026-11-01"}, {"id": "37", "ticker": "CPALL", "oppday": "Q2/2026", "นาที": "30:45", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=wYCz3EB5CsA&t=1845s", "เรื่อง": "เป้า SSSG ทั้งปี (guidance)", "ผู้บริหารพูด": "~1.5–2% ตาม GDP", "ตัวเลขจริง": "Q1 +1.9% · Q2 +0.8%", "ที่มา": "MD&A CPALL Q1/2569 และ MD&A CPALL Q2/2569 (IDR 19/2026, 13 ส.ค. 2569)", "ผล": "ตามดูต่อ", "หมายเหตุ": "ครึ่งปีแรกเฉลี่ยราว 1.3% ต่ำกว่าเป้า ต้องเร่งในครึ่งปีหลัง", "วันที่ตรวจ": "2026-11-01"}, {"id": "38", "ticker": "FTE", "oppday": "Q2/2026", "นาที": "5:54", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=mqfiXN3NtrE&t=354s", "เรื่อง": "สัดส่วนรายได้ขายสินค้า : งานโครงการและบริการ (6 เดือน)", "ผู้บริหารพูด": "64% : 36% (ปีก่อนราว 60:40)", "ตัวเลขจริง": "64.0% : 36.0% (ปีก่อน 60.6% : 39.4%)", "ที่มา": "MD&A FTE Q2/2569 (FTE 003/2026, 13 ส.ค. 2569) หน้า 2", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "39", "ticker": "FTE", "oppday": "Q2/2026", "นาที": "6:19", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=mqfiXN3NtrE&t=379s", "เรื่อง": "รายได้รวม และกำไรสุทธิ 6 เดือน", "ผู้บริหารพูด": "910 ลบ. · กำไร 95 ลบ.", "ตัวเลขจริง": "รายได้รวม 910.6 ลบ. (ขายและบริการ 907.7 + อื่น ๆ 2.8) · กำไร 95.1 ลบ.", "ที่มา": "MD&A FTE Q2/2569 (FTE 003/2026, 13 ส.ค. 2569) หน้า 2", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "40", "ticker": "FTE", "oppday": "Q2/2026", "นาที": "6:28", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=mqfiXN3NtrE&t=388s", "เรื่อง": "รายได้ทั้งปี 2568", "ผู้บริหารพูด": "~1,400 ลบ.", "ตัวเลขจริง": "1,403.9 ลบ. (ขายและบริการ 1,389.7 + อื่น ๆ 14.2)", "ที่มา": "งบการเงิน FTE ปี 2568 งบกำไรขาดทุน", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "41", "ticker": "FTE", "oppday": "Q2/2026", "นาที": "7:02", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=mqfiXN3NtrE&t=422s", "เรื่อง": "กำไรขั้นต้น และ GPM 6 เดือน", "ผู้บริหารพูด": "219 ลบ. · 24.1% ลดลงเล็กน้อย", "ตัวเลขจริง": "218.9 ลบ. · 24.12% (ปีก่อน 25.39%)", "ที่มา": "MD&A FTE Q2/2569 (FTE 003/2026, 13 ส.ค. 2569) หน้า 2", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "42", "ticker": "FTE", "oppday": "Q2/2026", "นาที": "7:56", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=mqfiXN3NtrE&t=476s", "เรื่อง": "งานขายสินค้า: ยอดขาย ต้นทุน GPM", "ผู้บริหารพูด": "581 / 419 ลบ. · 27.9% ลดลงเล็กน้อย", "ตัวเลขจริง": "581.1 / 419.2 ลบ. · 27.86% (ปีก่อน 28.36%)", "ที่มา": "MD&A FTE Q2/2569 (FTE 003/2026, 13 ส.ค. 2569) หน้า 2", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "43", "ticker": "FTE", "oppday": "Q2/2026", "นาที": "8:29", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=mqfiXN3NtrE&t=509s", "เรื่อง": "งานโครงการ: ยอดขาย ต้นทุน GPM", "ผู้บริหารพูด": "327 / 270 ลบ. · GPM ลดราว 2% จาก 19.5% เหลือ 17.5%", "ตัวเลขจริง": "326.7 / 269.6 ลบ. · 17.46% แต่ช่วงเดียวกันปีก่อน 20.82% (ลด 3.4 จุด)", "ที่มา": "MD&A FTE Q2/2569 (FTE 003/2026, 13 ส.ค. 2569) หน้า 2", "ผล": "ไม่ตรง", "หมายเหตุ": "ระดับ 17.5% ตรง แต่ฐานปีก่อนที่พูด 19.5% ไม่ตรงกับงบ 6 เดือนปีก่อน ทำให้ดูลดน้อยกว่าจริง", "วันที่ตรวจ": "2026-11-01"}, {"id": "44", "ticker": "FTE", "oppday": "Q2/2026", "นาที": "9:29", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=mqfiXN3NtrE&t=569s", "เรื่อง": "SG&A 6 เดือน", "ผู้บริหารพูด": "105.73 ลบ. +11.3%", "ตัวเลขจริง": "105.73 ลบ. +11.27%", "ที่มา": "MD&A FTE Q2/2569 (FTE 003/2026, 13 ส.ค. 2569) หน้า 3", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "45", "ticker": "FTE", "oppday": "Q2/2026", "นาที": "9:46", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=mqfiXN3NtrE&t=586s", "เรื่อง": "SG&A ต่อรายได้", "ผู้บริหารพูด": "14.6% → 11.6%", "ตัวเลขจริง": "14.58% → 11.65%", "ที่มา": "MD&A FTE Q2/2569 (FTE 003/2026, 13 ส.ค. 2569) หน้า 2 (คำนวณ SG&A / รายได้ขายและบริการ)", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "46", "ticker": "FTE", "oppday": "Q2/2026", "นาที": "10:27", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=mqfiXN3NtrE&t=627s", "เรื่อง": "ค่าใช้จ่ายบริหาร", "ผู้บริหารพูด": "49.28 → 47.46 ลบ.", "ตัวเลขจริง": "49.27 → 47.46 ลบ.", "ที่มา": "MD&A FTE Q2/2569 (FTE 003/2026, 13 ส.ค. 2569) หน้า 2", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "47", "ticker": "FTE", "oppday": "Q2/2026", "นาที": "11:00", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=mqfiXN3NtrE&t=660s", "เรื่อง": "กลับรายการ ECL 6 เดือน", "ผู้บริหารพูด": "-7.43 (2568) · -5.37 (2569) ลบ.", "ตัวเลขจริง": "-7.43 · -5.37 ลบ.", "ที่มา": "MD&A FTE Q2/2569 (FTE 003/2026, 13 ส.ค. 2569) หน้า 2", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "48", "ticker": "FTE", "oppday": "Q2/2026", "นาที": "11:10", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=mqfiXN3NtrE&t=670s", "เรื่อง": "ค่าเผื่อ ECL คงเหลือ", "ผู้บริหารพูด": "~34 ลบ. (ลูกหนี้การค้า 30 + อื่น ๆ ~4)", "ตัวเลขจริง": "34.1 ลบ. (ลูกหนี้การค้า 30.0 + ลูกหนี้อื่น 2.2 + สินทรัพย์ที่เกิดจากสัญญา 1.9)", "ที่มา": "หมายเหตุประกอบงบ FTE Q2/2569 ข้อ 4–5", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "49", "ticker": "FTE", "oppday": "Q2/2026", "นาที": "12:51", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=mqfiXN3NtrE&t=771s", "เรื่อง": "ส่วนของผู้ถือหุ้น หนี้สิน D/E", "ผู้บริหารพูด": "898 · 473 ลบ. · 0.53 เท่า", "ตัวเลขจริง": "898.4 · 472.7 ลบ. · 0.53 เท่า", "ที่มา": "งบการเงิน FTE Q2/2569 (30 มิ.ย. 2569) งบแสดงฐานะการเงิน", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "50", "ticker": "FTE", "oppday": "Q2/2026", "นาที": "13:31", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=mqfiXN3NtrE&t=811s", "เรื่อง": "สินค้าคงเหลือ", "ผู้บริหารพูด": "474 ลบ.", "ตัวเลขจริง": "474.1 ลบ.", "ที่มา": "งบการเงิน FTE Q2/2569 (30 มิ.ย. 2569) งบแสดงฐานะการเงิน", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "51", "ticker": "FTE", "oppday": "Q2/2026", "นาที": "15:27", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=mqfiXN3NtrE&t=927s", "เรื่อง": "รายได้โต", "ผู้บริหารพูด": "เกือบ 40%", "ตัวเลขจริง": "+39.29% (6 เดือน)", "ที่มา": "MD&A FTE Q2/2569 (FTE 003/2026, 13 ส.ค. 2569) หน้า 2", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "52", "ticker": "FTE", "oppday": "Q2/2026", "นาที": "15:34", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=mqfiXN3NtrE&t=934s", "เรื่อง": "กำไรจากการดำเนินงานโต", "ผู้บริหารพูด": "มากกว่า 50%", "ตัวเลขจริง": "+50.3% (77.2 → 116.0 ลบ.)", "ที่มา": "งบการเงิน FTE Q2/2569 (30 มิ.ย. 2569) Profit from operating activities 6 เดือน", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "53", "ticker": "FTE", "oppday": "Q2/2026", "นาที": "15:43", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=mqfiXN3NtrE&t=943s", "เรื่อง": "ROE 6 เดือน (ปรับเป็นทั้งปี)", "ผู้บริหารพูด": "21.6% · ฐานส่วนผู้ถือหุ้น 881 ลบ.", "ตัวเลขจริง": "21.6% (95.1 x 2 / ส่วนผู้ถือหุ้นเฉลี่ย 881.1)", "ที่มา": "งบการเงิน FTE Q2/2569 (30 มิ.ย. 2569) (คำนวณ)", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "54", "ticker": "FTE", "oppday": "Q2/2026", "นาที": "15:51", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=mqfiXN3NtrE&t=951s", "เรื่อง": "ROA", "ผู้บริหารพูด": "14.3%", "ตัวเลขจริง": "14.3% (190.2 / สินทรัพย์เฉลี่ย 1,325.6)", "ที่มา": "งบการเงิน FTE Q2/2569 (30 มิ.ย. 2569) (คำนวณ)", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "55", "ticker": "FTE", "oppday": "Q2/2026", "นาที": "15:58", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=mqfiXN3NtrE&t=958s", "เรื่อง": "สินทรัพย์รวม", "ผู้บริหารพูด": "1,371 ลบ.", "ตัวเลขจริง": "1,371.1 ลบ.", "ที่มา": "งบการเงิน FTE Q2/2569 (30 มิ.ย. 2569) งบแสดงฐานะการเงิน", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "56", "ticker": "FTE", "oppday": "Q2/2026", "นาที": "16:19", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=mqfiXN3NtrE&t=979s", "เรื่อง": "Net profit margin · Operating margin", "ผู้บริหารพูด": "10.4% · 12.8%", "ตัวเลขจริง": "10.44% · 12.74%", "ที่มา": "MD&A FTE Q2/2569 (FTE 003/2026, 13 ส.ค. 2569) หน้า 2 และ งบการเงิน FTE Q2/2569 (30 มิ.ย. 2569)", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "57", "ticker": "FTE", "oppday": "Q2/2026", "นาที": "16:27", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=mqfiXN3NtrE&t=987s", "เรื่อง": "Asset turnover", "ผู้บริหารพูด": "1.37 เท่า", "ตัวเลขจริง": "1.37 เท่า (รายได้ปรับเป็นทั้งปี / สินทรัพย์เฉลี่ย)", "ที่มา": "งบการเงิน FTE Q2/2569 (30 มิ.ย. 2569) (คำนวณ)", "ผล": "ตรง", "หมายเหตุ": "", "วันที่ตรวจ": "2026-11-01"}, {"id": "58", "ticker": "FTE", "oppday": "Q2/2026", "นาที": "4:48", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=mqfiXN3NtrE&t=288s", "เรื่อง": "ส่วนแบ่งตลาด / โตกว่าคู่แข่ง", "ผู้บริหารพูด": "257% · 2.5 เท่า", "ตัวเลขจริง": "ไม่มีในงบหรือ MD&A", "ที่มา": "-", "ผล": "ตรวจไม่ได้", "หมายเหตุ": "ไม่บอกว่าเทียบกับใคร", "วันที่ตรวจ": "2026-11-01"}, {"id": "59", "ticker": "FTE", "oppday": "Q2/2026", "นาที": "38:51", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=mqfiXN3NtrE&t=2331s", "เรื่อง": "เป้ายอดขายปี 2569 และทำได้แล้ว", "ผู้บริหารพูด": "1,750 ลบ. · ทำได้ 52%", "ตัวเลขจริง": "907.7 / 1,750 = 51.9%", "ที่มา": "MD&A FTE Q2/2569 (FTE 003/2026, 13 ส.ค. 2569) หน้า 2", "ผล": "ตรง", "หมายเหตุ": "เป้า 1,750 ลบ. มาจากคลิป ไม่มีในงบ", "วันที่ตรวจ": "2026-11-01"}, {"id": "60", "ticker": "FTE", "oppday": "Q2/2026", "นาที": "39:34", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=mqfiXN3NtrE&t=2374s", "เรื่อง": "backlog", "ผู้บริหารพูด": "600 ลบ. (2569) + 250 ลบ. (2570) · ยังขาด 242 ลบ.", "ตัวเลขจริง": "ไม่มีในงบหรือ MD&A · เลขขาด 242 คำนวณถูก (1,750 − 907.7 − 600 = 242.3)", "ที่มา": "-", "ผล": "ตรวจไม่ได้", "หมายเหตุ": "ต้องตามดูว่ารับรู้รายได้ได้จริงใน Q3–Q4", "วันที่ตรวจ": "2026-11-01"}, {"id": "61", "ticker": "FTE", "oppday": "Q2/2026", "นาที": "40:50", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=mqfiXN3NtrE&t=2450s", "เรื่อง": "ฐานกำไรสำหรับเป้า JUMP+ (180 ลบ. ภายในปี 2571)", "ผู้บริหารพูด": "117.7 ลบ. (\"ปี 2566 หรือปีที่แล้ว\")", "ตัวเลขจริง": "กำไรปี 2568 = 123.0 ลบ. · ปี 2567 = 116.2 ลบ.", "ที่มา": "งบการเงิน FTE ปี 2568 Profit for the year", "ผล": "ไม่ตรง", "หมายเหตุ": "ไม่ตรงกับปี 2567 หรือ 2568 ถ้าหมายถึงปี 2566 ไม่มีเอกสารให้ตรวจ", "วันที่ตรวจ": "2026-11-01"}, {"id": "62", "ticker": "FTE", "oppday": "Q2/2026", "นาที": "42:13", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=mqfiXN3NtrE&t=2533s", "เรื่อง": "ผลเทียบเป้า JUMP+: กำไรโต / รายได้โต", "ผู้บริหารพูด": "กำไรโต 46.5% (เป้า 15%) · รายได้โต 39.3% (เป้า 20%)", "ตัวเลขจริง": "กำไร +46.45% · รายได้ขายและบริการ +39.29% (6 เดือน)", "ที่มา": "MD&A FTE Q2/2569 (FTE 003/2026, 13 ส.ค. 2569) หน้า 2", "ผล": "ตรง", "หมายเหตุ": "เทียบครึ่งปีกับครึ่งปี", "วันที่ตรวจ": "2026-11-01"}, {"id": "63", "ticker": "FTE", "oppday": "Q2/2026", "นาที": "49:34", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=mqfiXN3NtrE&t=2974s", "เรื่อง": "เป้าการเติบโตปี 2569", "ผู้บริหารพูด": "โต 20–30%", "ตัวเลขจริง": "ครึ่งปีแรกโต 39.3%", "ที่มา": "-", "ผล": "ตามดูต่อ", "หมายเหตุ": "ครึ่งปีแรกเกินเป้า ต้องดูทั้งปี", "วันที่ตรวจ": "2026-11-01"}, {"id": "64", "ticker": "FTE", "oppday": "Q2/2026", "นาที": "52:34", "ลิงก์ในวิดีโอ": "https://www.youtube.com/watch?v=mqfiXN3NtrE&t=3154s", "เรื่อง": "กระแสเงินสดจากการดำเนินงาน และลูกหนี้", "ผู้บริหารพูด": "CFO ~49 ลบ. ต่ำกว่ากำไร 95 ลบ. · ลูกหนี้ 267 → 367 ลบ.", "ตัวเลขจริง": "CFO 49.1 ลบ. (ปีก่อน 125.2) · ลูกหนี้การค้าและอื่น ๆ 267.4 → 367.2 ลบ.", "ที่มา": "งบการเงิน FTE Q2/2569 (30 มิ.ย. 2569) งบกระแสเงินสด และงบแสดงฐานะการเงิน", "ผล": "ตรง", "หมายเหตุ": "ตอบตอนนักลงทุนถาม ไม่ได้อยู่ในส่วนนำเสนอ", "วันที่ตรวจ": "2026-11-01"}], "companies": [{"ticker": "CPALL", "name": "บมจ. ซีพี ออลล์", "oppday": "Q2/2026", "published": "2026-08-15", "video": "https://www.youtube.com/watch?v=wYCz3EB5CsA", "report": "CPALL_Q2-2026_check.md", "verdict": "ดูต่อ", "verdict_note": "ตัวเลขที่พูดตรงกับงบเกือบทุกตัว ข้อที่ไม่ตรงทั้งหมดมีข้อเดียว และเป็นเรื่องใช้ฐานคำนวณต่างกัน", "unspoken": ["ลูกค้าต่อร้านต่อวันลดลงเล็กน้อย YoY (MD&A หน้า 4) คลิปพูดแค่ตัวเลข 959 คน", "EBIT งบรวมโต 3.9% ขณะที่ EBIT 7-Eleven โต 11.0% ธุรกิจอื่นโตช้ากว่ามาก", "กำไรส่วนผู้ถือหุ้นส่วนน้อยลด 22% (900.7 → 698.8 ลบ.)", "SSSG ครึ่งปีแรกเฉลี่ยราว 1.3% ต่ำกว่าเป้า 1.5–2%"]}, {"ticker": "FTE", "name": "บมจ. ไฟร์เทรดเอ็นจิเนียริ่ง", "oppday": "Q2/2026", "published": "2026-08-21", "video": "https://www.youtube.com/watch?v=mqfiXN3NtrE", "report": "FTE_Q2-2026_check.md", "verdict": "ระวัง", "verdict_note": "ตัวเลขผลประกอบการตรง แต่ข้อที่ไม่ตรงทั้ง 2 ข้อทำให้ดูดีกว่าจริง และเล่าแต่ตัวเลข 6 เดือนซึ่งกลบไตรมาส 2 ที่แย่ลง", "unspoken": ["ไตรมาส 2 อย่างเดียว net margin ลด 10.36% → 9.69% และ gross margin ลด 25.39% → 23.92%", "ไตรมาส 2 ตั้งค่าเผื่อหนี้สงสัยจะสูญเพิ่ม 2.21 ลบ. คลิปพูดแต่ภาพ 6 เดือนที่กลับรายการ", "ลูกหนี้ค้างเกิน 12 เดือนเพิ่ม 17.9 → 20.7 ลบ.", "กระแสเงินสดจากการดำเนินงาน 49 ลบ. ต่ำกว่ากำไร 95 ลบ. ตอบเมื่อนักลงทุนถามเท่านั้น"]}], "built": "2026-11-01"};
+
+const RESULTS = [
+  { key: "ตรง", icon: "✓", color: "var(--good)" },
+  { key: "ตรงบางส่วน", icon: "◐", color: "var(--warning)" },
+  { key: "ไม่ตรง", icon: "✕", color: "var(--critical)" },
+  { key: "ตรวจไม่ได้", icon: "?", color: "var(--unknown)" },
+  { key: "ตามดูต่อ", icon: "⏳", color: "var(--pending)" },
+];
+const R = Object.fromEntries(RESULTS.map(r => [r.key, r]));
+const VERDICT = {
+  "ดูต่อ": { icon: "✓", color: "var(--good)" },
+  "ระวัง": { icon: "!", color: "var(--warning)" },
+  "ตัดออก": { icon: "✕", color: "var(--critical)" },
+};
+
+const el = (tag, attrs = {}, ...kids) => {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "style") n.style.cssText = v; else if (k in n) n[k] = v; else n.setAttribute(k, v);
+  }
+  for (const k of kids) n.append(k);
+  return n;
+};
+const chip = key => el("span", { className: "chip" },
+  el("span", { className: "sw", style: `background:${R[key].color};margin:0` }), `${R[key].icon} ${key}`);
+
+document.getElementById("built").textContent = DATA.built;
+
+const legend = document.getElementById("legend");
+RESULTS.forEach(r => legend.append(el("span", {}, el("span", { className: "sw", style: `background:${r.color}` }), `${r.icon} ${r.key}`)));
+
+const tip = document.getElementById("tip");
+const showTip = (e, text) => { tip.textContent = text; tip.style.opacity = 1; moveTip(e); };
+const moveTip = e => { tip.style.left = Math.min(e.clientX + 12, innerWidth - tip.offsetWidth - 8) + "px"; tip.style.top = (e.clientY + 14) + "px"; };
+const hideTip = () => { tip.style.opacity = 0; };
+
+const cards = document.getElementById("cards");
+for (const c of DATA.companies) {
+  const rows = DATA.claims.filter(x => x.ticker === c.ticker && x.oppday === c.oppday);
+  const n = Object.fromEntries(RESULTS.map(r => [r.key, rows.filter(x => x["ผล"] === r.key).length]));
+  const checkable = n["ตรง"] + n["ตรงบางส่วน"] + n["ไม่ตรง"];
+  const score = checkable ? (n["ตรง"] + 0.5 * n["ตรงบางส่วน"]) / checkable : null;
+  const v = VERDICT[c.verdict] || { icon: "•", color: "var(--unknown)" };
+
+  const bar = el("div", { className: "bar", role: "img", "aria-label": RESULTS.map(r => `${r.key} ${n[r.key]}`).join(", ") });
+  RESULTS.filter(r => n[r.key]).forEach(r => {
+    const s = el("span", { style: `flex:${n[r.key]};background:${r.color}` });
+    const text = `${r.icon} ${r.key}: ${n[r.key]} ข้อ (${Math.round(n[r.key] / rows.length * 100)}%)`;
+    s.addEventListener("mouseenter", e => showTip(e, text));
+    s.addEventListener("mousemove", moveTip);
+    s.addEventListener("mouseleave", hideTip);
+    bar.append(s);
+  });
+
+  const counts = el("div", { className: "counts" });
+  RESULTS.forEach(r => counts.append(el("span", {}, `${r.key} `, el("b", {}, String(n[r.key])))));
+
+  const ul = el("ul");
+  c.unspoken.forEach(t => ul.append(el("li", {}, t)));
+
+  cards.append(el("article", { className: "card" },
+    el("div", { className: "card-top" },
+      el("div", {}, el("p", { className: "ticker" }, c.ticker), el("div", { className: "sub" }, `${c.name} · Oppday ${c.oppday} · เผยแพร่ ${c.published}`)),
+      el("span", { className: "verdict" }, el("span", { className: "dot", style: `background:${v.color}` }), `${v.icon} ${c.verdict}`)),
+    el("div", { className: "hero" },
+      el("span", { className: "num" }, score === null ? "–" : `${Math.round(score * 100)}%`),
+      el("span", { className: "cap" }, `ตรงกับงบ · ${n["ตรง"]} จาก ${checkable} ข้อที่ตรวจได้ (ทั้งหมด ${rows.length} ข้อ)`)),
+    bar, counts,
+    el("p", { className: "note" }, c.verdict_note),
+    el("h3", {}, "อยู่ในงบแต่ไม่ได้พูด"), ul,
+    el("div", { className: "links" },
+      el("a", { href: c.video, target: "_blank", rel: "noopener" }, "ดูคลิป Oppday ↗"),
+      el("a", { href: c.report }, "อ่านรายงานตรวจเต็ม"))
+  ));
+}
+
+const fT = document.getElementById("f-ticker"), fR = document.getElementById("f-result"), fQ = document.getElementById("f-q");
+fT.append(el("option", { value: "" }, "ทุกบริษัท"));
+[...new Set(DATA.claims.map(x => x.ticker))].forEach(t => fT.append(el("option", { value: t }, t)));
+fR.append(el("option", { value: "" }, "ทุกผลตรวจ"));
+RESULTS.forEach(r => fR.append(el("option", { value: r.key }, `${r.icon} ${r.key}`)));
+
+const order = Object.fromEntries(RESULTS.map((r, i) => [r.key, [2, 1, 0, 3, 4][i]]));
+const tbody = document.getElementById("rows");
+function render() {
+  const q = fQ.value.trim().toLowerCase();
+  const list = DATA.claims
+    .filter(x => (!fT.value || x.ticker === fT.value) && (!fR.value || x["ผล"] === fR.value))
+    .filter(x => !q || ["เรื่อง", "ผู้บริหารพูด", "ตัวเลขจริง", "หมายเหตุ", "ที่มา"].some(k => (x[k] || "").toLowerCase().includes(q)))
+    .sort((a, b) => order[a["ผล"]] - order[b["ผล"]] || a.ticker.localeCompare(b.ticker) || +a.id - +b.id);
+  tbody.replaceChildren(...list.map(x => el("tr", {},
+    el("td", {}, el("b", {}, x.ticker), el("div", { className: "src" }, x.oppday)),
+    el("td", { className: "num" }, el("a", { href: x["ลิงก์ในวิดีโอ"], target: "_blank", rel: "noopener" }, x["นาที"])),
+    el("td", {}, x["เรื่อง"]),
+    el("td", {}, x["ผู้บริหารพูด"]),
+    el("td", {}, x["ตัวเลขจริง"], el("div", { className: "src" }, x["ที่มา"] === "-" ? "" : x["ที่มา"])),
+    el("td", {}, chip(x["ผล"])),
+    el("td", {}, x["หมายเหตุ"])
+  )));
+  document.getElementById("rowcount").textContent = `แสดง ${list.length} จาก ${DATA.claims.length} ข้อ · ข้อที่ไม่ตรงขึ้นก่อน`;
+}
+[fT, fR].forEach(x => x.addEventListener("change", render));
+fQ.addEventListener("input", render);
+render();
+</script>
+</body>
+</html>

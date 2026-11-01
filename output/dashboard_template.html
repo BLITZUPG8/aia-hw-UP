@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oppday Check</title>
+<style>
+:root {
+  --surface-0: #f4f3ef;
+  --surface-1: #fcfcfb;
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted: #77766f;
+  --hairline: #e1e0d9;
+  --border: rgba(11,11,11,0.10);
+  --link: #1f5fbf;
+  --good: #0ca30c;
+  --good-text: #006300;
+  --warning: #fab219;
+  --critical: #d03b3b;
+  --unknown: #a3a29b;
+  --pending: #3e7bd6;
+  --chip-bg: #efeee9;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --surface-0: #121211;
+    --surface-1: #1a1a19;
+    --text-primary: #f0efec;
+    --text-secondary: #c3c2b7;
+    --text-muted: #9a998f;
+    --hairline: #2c2c2a;
+    --border: rgba(255,255,255,0.10);
+    --link: #7fb0ff;
+    --good-text: #0ca30c;
+    --unknown: #6f6e68;
+    --pending: #5a93ec;
+    --chip-bg: #252523;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--surface-0);
+  color: var(--text-primary);
+  font: 15px/1.55 system-ui, -apple-system, "Segoe UI", "Noto Sans Thai", sans-serif;
+}
+a { color: var(--link); }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 24px 16px 48px; }
+header h1 { margin: 0; font-size: 26px; }
+header p { margin: 4px 0 0; color: var(--text-secondary); }
+h2 { font-size: 18px; margin: 32px 0 12px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+.card {
+  background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 20px;
+}
+.card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.ticker { font-size: 22px; font-weight: 700; margin: 0; }
+.sub { color: var(--text-secondary); font-size: 13px; }
+.verdict {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px;
+  font-weight: 600; font-size: 14px; white-space: nowrap; border: 1px solid var(--border);
+}
+.verdict .dot { width: 10px; height: 10px; border-radius: 50%; }
+.hero { margin: 16px 0 4px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.hero .num { font-size: 40px; font-weight: 700; line-height: 1; }
+.hero .cap { color: var(--text-secondary); font-size: 14px; }
+.bar { display: flex; gap: 2px; height: 14px; margin: 14px 0 8px; }
+.bar span { display: block; height: 100%; min-width: 4px; cursor: default; }
+.bar span:first-child { border-radius: 4px 0 0 4px; }
+.bar span:last-child { border-radius: 0 4px 4px 0; }
+.bar span:only-child { border-radius: 4px; }
+.counts { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--text-secondary); }
+.counts b { color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.note { margin: 14px 0 6px; }
+.card h3 { font-size: 14px; margin: 14px 0 6px; color: var(--text-secondary); font-weight: 600; }
+.card ul { margin: 0; padding-left: 20px; }
+.card li { margin: 3px 0; }
+.links { margin-top: 14px; display: flex; gap: 16px; flex-wrap: wrap; font-size: 14px; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; color: var(--text-secondary); margin-top: 10px; }
+.sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.explain { font-size: 13px; color: var(--text-muted); margin: 8px 0 0; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.filters select, .filters input {
+  font: inherit; font-size: 14px; padding: 7px 10px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--surface-1); color: var(--text-primary);
+}
+.filters input { flex: 1 1 200px; min-width: 0; }
+.table-box { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 900px; font-size: 14px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--hairline); vertical-align: top; }
+th { font-size: 13px; color: var(--text-secondary); font-weight: 600; position: sticky; top: 0; background: var(--surface-1); }
+tr:last-child td { border-bottom: 0; }
+td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.chip {
+  display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+  padding: 2px 8px; border-radius: 999px; background: var(--chip-bg); font-size: 13px; font-weight: 600;
+}
+.src { color: var(--text-muted); font-size: 12px; margin-top: 4px; }
+.rowcount { font-size: 13px; color: var(--text-muted); margin: 8px 2px 0; }
+#tip {
+  position: fixed; pointer-events: none; background: var(--text-primary); color: var(--surface-1);
+  padding: 6px 10px; border-radius: 6px; font-size: 13px; opacity: 0; transition: opacity .1s; z-index: 10;
+}
+footer { margin-top: 32px; font-size: 13px; color: var(--text-muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Oppday Check</h1>
+    <p>ผู้บริหารพูดใน Opportunity Day ตรงกับงบการเงินจริงไหม · อัปเดต <span id="built"></span></p>
+  </header>
+
+  <h2>ภาพรวมรายบริษัท</h2>
+  <div class="legend" id="legend"></div>
+  <p class="explain">"ตรงกับงบ" นับจากข้อที่ตรวจได้ (ตรง + ตรงบางส่วน + ไม่ตรง) โดยตรงบางส่วนนับครึ่งข้อ วัดแค่ความถูกต้องของตัวเลข ส่วนเรื่องที่ไม่ได้พูดดูในหัวข้อ "อยู่ในงบแต่ไม่ได้พูด"</p>
+  <div class="cards" id="cards" style="margin-top:14px"></div>
+
+  <h2>ตารางตรวจทุกข้อ</h2>
+  <div class="filters">
+    <select id="f-ticker" aria-label="บริษัท"></select>
+    <select id="f-result" aria-label="ผลตรวจ"></select>
+    <input id="f-q" type="search" placeholder="ค้นหาเรื่อง ตัวเลข หรือหมายเหตุ" aria-label="ค้นหา">
+  </div>
+  <div class="table-box">
+    <table>
+      <thead><tr>
+        <th>บริษัท</th><th>นาที</th><th>เรื่อง</th><th>ผู้บริหารพูด</th><th>ตัวเลขจริง</th><th>ผล</th><th>หมายเหตุ</th>
+      </tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+  <p class="rowcount" id="rowcount"></p>
+
+  <footer>
+    ตัวเลขจริงมาจากงบการเงินและ MD&A ที่บริษัทยื่นต่อตลาดหลักทรัพย์ฯ · คำพูดผู้บริหารมาจากคำบรรยายอัตโนมัติของ YouTube ช่อง SET Thailand ซึ่งอาจถอดตัวเลขเพี้ยน จึงยึดตัวเลขจากงบเสมอ · ตรวจด้วยมือ ไม่ใช่คำแนะนำการลงทุน
+  </footer>
+</div>
+<div id="tip" role="tooltip"></div>
+
+<script>
+const DATA = /*__DATA__*/null;
+
+const RESULTS = [
+  { key: "ตรง", icon: "✓", color: "var(--good)" },
+  { key: "ตรงบางส่วน", icon: "◐", color: "var(--warning)" },
+  { key: "ไม่ตรง", icon: "✕", color: "var(--critical)" },
+  { key: "ตรวจไม่ได้", icon: "?", color: "var(--unknown)" },
+  { key: "ตามดูต่อ", icon: "⏳", color: "var(--pending)" },
+];
+const R = Object.fromEntries(RESULTS.map(r => [r.key, r]));
+const VERDICT = {
+  "ดูต่อ": { icon: "✓", color: "var(--good)" },
+  "ระวัง": { icon: "!", color: "var(--warning)" },
+  "ตัดออก": { icon: "✕", color: "var(--critical)" },
+};
+
+const el = (tag, attrs = {}, ...kids) => {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "style") n.style.cssText = v; else if (k in n) n[k] = v; else n.setAttribute(k, v);
+  }
+  for (const k of kids) n.append(k);
+  return n;
+};
+const chip = key => el("span", { className: "chip" },
+  el("span", { className: "sw", style: `background:${R[key].color};margin:0` }), `${R[key].icon} ${key}`);
+
+document.getElementById("built").textContent = DATA.built;
+
+const legend = document.getElementById("legend");
+RESULTS.forEach(r => legend.append(el("span", {}, el("span", { className: "sw", style: `background:${r.color}` }), `${r.icon} ${r.key}`)));
+
+const tip = document.getElementById("tip");
+const showTip = (e, text) => { tip.textContent = text; tip.style.opacity = 1; moveTip(e); };
+const moveTip = e => { tip.style.left = Math.min(e.clientX + 12, innerWidth - tip.offsetWidth - 8) + "px"; tip.style.top = (e.clientY + 14) + "px"; };
+const hideTip = () => { tip.style.opacity = 0; };
+
+const cards = document.getElementById("cards");
+for (const c of DATA.companies) {
+  const rows = DATA.claims.filter(x => x.ticker === c.ticker && x.oppday === c.oppday);
+  const n = Object.fromEntries(RESULTS.map(r => [r.key, rows.filter(x => x["ผล"] === r.key).length]));
+  const checkable = n["ตรง"] + n["ตรงบางส่วน"] + n["ไม่ตรง"];
+  const score = checkable ? (n["ตรง"] + 0.5 * n["ตรงบางส่วน"]) / checkable : null;
+  const v = VERDICT[c.verdict] || { icon: "•", color: "var(--unknown)" };
+
+  const bar = el("div", { className: "bar", role: "img", "aria-label": RESULTS.map(r => `${r.key} ${n[r.key]}`).join(", ") });
+  RESULTS.filter(r => n[r.key]).forEach(r => {
+    const s = el("span", { style: `flex:${n[r.key]};background:${r.color}` });
+    const text = `${r.icon} ${r.key}: ${n[r.key]} ข้อ (${Math.round(n[r.key] / rows.length * 100)}%)`;
+    s.addEventListener("mouseenter", e => showTip(e, text));
+    s.addEventListener("mousemove", moveTip);
+    s.addEventListener("mouseleave", hideTip);
+    bar.append(s);
+  });
+
+  const counts = el("div", { className: "counts" });
+  RESULTS.forEach(r => counts.append(el("span", {}, `${r.key} `, el("b", {}, String(n[r.key])))));
+
+  const ul = el("ul");
+  c.unspoken.forEach(t => ul.append(el("li", {}, t)));
+
+  cards.append(el("article", { className: "card" },
+    el("div", { className: "card-top" },
+      el("div", {}, el("p", { className: "ticker" }, c.ticker), el("div", { className: "sub" }, `${c.name} · Oppday ${c.oppday} · เผยแพร่ ${c.published}`)),
+      el("span", { className: "verdict" }, el("span", { className: "dot", style: `background:${v.color}` }), `${v.icon} ${c.verdict}`)),
+    el("div", { className: "hero" },
+      el("span", { className: "num" }, score === null ? "–" : `${Math.round(score * 100)}%`),
+      el("span", { className: "cap" }, `ตรงกับงบ · ${n["ตรง"]} จาก ${checkable} ข้อที่ตรวจได้ (ทั้งหมด ${rows.length} ข้อ)`)),
+    bar, counts,
+    el("p", { className: "note" }, c.verdict_note),
+    el("h3", {}, "อยู่ในงบแต่ไม่ได้พูด"), ul,
+    el("div", { className: "links" },
+      el("a", { href: c.video, target: "_blank", rel: "noopener" }, "ดูคลิป Oppday ↗"),
+      el("a", { href: c.report }, "อ่านรายงานตรวจเต็ม"))
+  ));
+}
+
+const fT = document.getElementById("f-ticker"), fR = document.getElementById("f-result"), fQ = document.getElementById("f-q");
+fT.append(el("option", { value: "" }, "ทุกบริษัท"));
+[...new Set(DATA.claims.map(x => x.ticker))].forEach(t => fT.append(el("option", { value: t }, t)));
+fR.append(el("option", { value: "" }, "ทุกผลตรวจ"));
+RESULTS.forEach(r => fR.append(el("option", { value: r.key }, `${r.icon} ${r.key}`)));
+
+const order = Object.fromEntries(RESULTS.map((r, i) => [r.key, [2, 1, 0, 3, 4][i]]));
+const tbody = document.getElementById("rows");
+function render() {
+  const q = fQ.value.trim().toLowerCase();
+  const list = DATA.claims
+    .filter(x => (!fT.value || x.ticker === fT.value) && (!fR.value || x["ผล"] === fR.value))
+    .filter(x => !q || ["เรื่อง", "ผู้บริหารพูด", "ตัวเลขจริง", "หมายเหตุ", "ที่มา"].some(k => (x[k] || "").toLowerCase().includes(q)))
+    .sort((a, b) => order[a["ผล"]] - order[b["ผล"]] || a.ticker.localeCompare(b.ticker) || +a.id - +b.id);
+  tbody.replaceChildren(...list.map(x => el("tr", {},
+    el("td", {}, el("b", {}, x.ticker), el("div", { className: "src" }, x.oppday)),
+    el("td", { className: "num" }, el("a", { href: x["ลิงก์ในวิดีโอ"], target: "_blank", rel: "noopener" }, x["นาที"])),
+    el("td", {}, x["เรื่อง"]),
+    el("td", {}, x["ผู้บริหารพูด"]),
+    el("td", {}, x["ตัวเลขจริง"], el("div", { className: "src" }, x["ที่มา"] === "-" ? "" : x["ที่มา"])),
+    el("td", {}, chip(x["ผล"])),
+    el("td", {}, x["หมายเหตุ"])
+  )));
+  document.getElementById("rowcount").textContent = `แสดง ${list.length} จาก ${DATA.claims.length} ข้อ · ข้อที่ไม่ตรงขึ้นก่อน`;
+}
+[fT, fR].forEach(x => x.addEventListener("change", render));
+fQ.addEventListener("input", render);
+render();
+</script>
+</body>
+</html>
